@@ -1,4 +1,4 @@
-# CloudStruct: Serverless Backend with AWS Fargate Aurora and Event-Driven Lambda CI/CD Automation
+# CloudStruct: Serverless Backend with AWS Fargate, Aurora and Event-Driven Lambda CI/CD Automation
 
 This repository contains Terraform Infrastructure as Code (IaC) for a production-grade serverless application platform deployed on AWS. The architecture leverages cutting-edge cloud services including ECS Fargate, Lambda functions, Aurora Serverless v2, and EventBridge to create a fully managed, auto-scaling infrastructure with zero server maintenance.
 
