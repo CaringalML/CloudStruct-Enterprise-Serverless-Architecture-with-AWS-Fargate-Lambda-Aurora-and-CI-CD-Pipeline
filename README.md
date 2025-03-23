@@ -523,7 +523,8 @@ You can also manually trigger the workflow using GitHub Actions' workflow_dispat
 
 ## License
 
-MIT License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
 
 ## Contributor
 
