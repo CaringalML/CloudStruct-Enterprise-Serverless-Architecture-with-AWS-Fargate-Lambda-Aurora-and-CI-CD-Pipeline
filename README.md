@@ -139,7 +139,7 @@ This infrastructure implements a modern, scalable, and highly available architec
 - Auto-scaling based on CPU, memory, and request count
 - Automated deployment pipeline via EventBridge and Lambda
 
-![Architecture Diagram](AWS-ECS-Fargate.png)
+![Architecture Diagram](AWS-ECS-Fargates.png)
 
 ## Infrastructure Components
 
