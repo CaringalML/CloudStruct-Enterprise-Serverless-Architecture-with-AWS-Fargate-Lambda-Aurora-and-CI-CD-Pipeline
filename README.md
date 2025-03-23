@@ -525,7 +525,7 @@ You can also manually trigger the workflow using GitHub Actions' workflow_dispat
 
 MIT License
 
-## Contributors
+## Contributor
 
 - Martin Lawrence M. Caringal
   - Email: lawrencecaringal5@gmail.com
