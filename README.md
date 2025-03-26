@@ -1,23 +1,23 @@
-# CloudStruct: Serverless Backend with AWS Fargate, Aurora and Event-Driven Lambda CI/CD Automation
+# 🚀 CloudStruct: Serverless Backend with AWS Fargate, Aurora and Event-Driven Lambda CI/CD Automation
 
 This repository contains Terraform Infrastructure as Code (IaC) for a production-grade serverless application platform deployed on AWS. The architecture leverages cutting-edge cloud services including ECS Fargate, Lambda functions, Aurora Serverless v2, and EventBridge to create a fully managed, auto-scaling infrastructure with zero server maintenance.
 
-## Demo
+## 🎬 Demo
 
 Watch the complete demo of this architecture on YouTube:
 [CloudStruct Enterprise Architecture Demo](https://youtu.be/sUY1-sckJwY?si=bQfHPIHI66gKs0cp)
 
-## Quick Start
+## ⚡ Quick Start
 
 Want to deploy this infrastructure quickly? Follow these steps:
 
-1. **Clone the repository**
+1. **📋 Clone the repository**
    ```bash
    git clone https://github.com/CaringalML/CloudStruct-Serverless-Backend-with-AWS-Fargate-Aurora-and-Event-Driven-Lambda-CI-CD-Automation.git
    cd CloudStruct-Serverless-Backend-with-AWS-Fargate-Aurora-and-Event-Driven-Lambda-CI-CD-Automation
    ```
 
-2. **Configure AWS CLI**
+2. **🔑 Configure AWS CLI**
    First, create IAM access keys in the AWS console (IAM → Users → Your User → Security credentials → Create access key).
    Then configure your AWS CLI:
    ```bash
@@ -28,7 +28,7 @@ Want to deploy this infrastructure quickly? Follow these steps:
    # Enter your preferred output format (e.g., json)
    ```
 
-3. **Create terraform.tfvars file**
+3. **📝 Create terraform.tfvars file**
    Create a file named `terraform.tfvars` with the following content:
    ```
    # Required database variables
@@ -38,14 +38,14 @@ Want to deploy this infrastructure quickly? Follow these steps:
    
    ```
 
-4. **Deploy with Terraform**
+4. **🏗️ Deploy with Terraform**
    ```bash
    terraform init
    terraform plan
    terraform apply
    ```
 
-5. **Set up GitHub Actions for CI/CD**
+5. **🔄 Set up GitHub Actions for CI/CD**
    After deployment, add these secrets to your GitHub repository:
    - `AWS_ACCESS_KEY_ID`
    - `AWS_SECRET_ACCESS_KEY`
@@ -54,45 +54,45 @@ Want to deploy this infrastructure quickly? Follow these steps:
    - `DB_NAME`, `DB_USER`, `DB_PASSWORD` (from your terraform.tfvars)
    - `ECR_REPOSITORY` (default: "my-api")
 
-6. **Push code to trigger deployment**
+6. **🚀 Push code to trigger deployment**
    Push to the main branch or manually trigger the GitHub Action
 
-**Important Notes**:
+**⚠️ Important Notes**:
 - Make sure your app has a health check endpoint at `/api/health`
 - To destroy the infrastructure, first delete the container images, then run `terraform destroy`
 - Container images use the tag "jellybean" by default
 - The infrastructure includes an S3 Gateway Endpoint which optimizes costs by routing S3 traffic directly through AWS's network instead of through NAT Gateways
 - **Before deployment**: You must register your domain in Route 53 and create a hosted zone for it, then update the `domain_name` variable in `variables.tf  "domain_name" block` to match your registered domain
 
-## Why Containerized Deployment?
+## 🐳 Why Containerized Deployment?
 
 This infrastructure uses containerized deployments on ECS Fargate, providing numerous advantages over traditional deployment methods:
 
-### Flexibility and Consistency
-- **Environment Consistency**: Containers ensure the application runs the same way in all environments—development, testing, and production
-- **Technology Agnostic**: Package any application stack in containers regardless of language or framework
-- **Microservices Architecture**: Enables breaking down complex applications into smaller, independent services
+### 🧩 Flexibility and Consistency
+- **🔄 Environment Consistency**: Containers ensure the application runs the same way in all environments—development, testing, and production
+- **🔌 Technology Agnostic**: Package any application stack in containers regardless of language or framework
+- **🏗️ Microservices Architecture**: Enables breaking down complex applications into smaller, independent services
 
-### Operational Benefits
-- **Simplified Deployments**: Push container images to ECR, and the automated pipeline handles the rest
-- **Rapid Scaling**: Containers start in seconds, allowing rapid scaling to handle traffic spikes
-- **Resource Efficiency**: Only pay for the exact CPU and memory resources your containers use
-- **Isolation**: Application dependencies are encapsulated within containers, preventing conflicts
+### 🔧 Operational Benefits
+- **🚀 Simplified Deployments**: Push container images to ECR, and the automated pipeline handles the rest
+- **⚡ Rapid Scaling**: Containers start in seconds, allowing rapid scaling to handle traffic spikes
+- **💰 Resource Efficiency**: Only pay for the exact CPU and memory resources your containers use
+- **🛡️ Isolation**: Application dependencies are encapsulated within containers, preventing conflicts
 
-### DevOps Integration
-- **CI/CD Friendly**: Containerization fits perfectly into automated deployment pipelines
-- **Infrastructure as Code**: All container configurations are defined in Terraform
-- **Immutable Infrastructure**: Each deployment creates fresh container instances, eliminating configuration drift
+### 🔄 DevOps Integration
+- **🔄 CI/CD Friendly**: Containerization fits perfectly into automated deployment pipelines
+- **🏗️ Infrastructure as Code**: All container configurations are defined in Terraform
+- **🔒 Immutable Infrastructure**: Each deployment creates fresh container instances, eliminating configuration drift
 
-### Solving Common Problems
-- **"Works on my machine"**: Eliminates environment-specific bugs by packaging all dependencies
-- **Deployment Complexities**: Simplifies rollbacks by changing the container image version
-- **Scaling Challenges**: Removes the need to provision and configure new servers during scaling events
-- **Resource Utilization**: Improves infrastructure utilization compared to traditional VM deployments
+### 🛠️ Solving Common Problems
+- **🐞 "Works on my machine"**: Eliminates environment-specific bugs by packaging all dependencies
+- **🔄 Deployment Complexities**: Simplifies rollbacks by changing the container image version
+- **📈 Scaling Challenges**: Removes the need to provision and configure new servers during scaling events
+- **💻 Resource Utilization**: Improves infrastructure utilization compared to traditional VM deployments
 
 The combination of containerization with serverless infrastructure (Fargate, Lambda, Aurora Serverless) provides the best of both worlds: the flexibility of containers with the operational simplicity of serverless computing.
 
-### The Solution Story
+### 🧠 The Solution Story
 
 My infrastructure journey began with designing a multi-AZ architecture to ensure high availability. I separated the application into distinct layers - public-facing load balancers in public subnets and containerized applications running in private subnets for security. I placed the Aurora Serverless database in isolated private subnets with access only from application containers.
 
@@ -101,7 +101,7 @@ One of the early challenges I faced was configuring the ALB health check path co
 1. The application hadn't implemented this endpoint yet
 2. The health check was timing out before the application could initialize
 
-I had to temporarily adjust the health check settings to be more lenient during initial deployment, then tighten them once the application was stable. **Important note for anyone deploying this infrastructure**: ensure your application has a working health check endpoint before deployment, or modify the `health_check` variable in `variables.tf` to match your application's actual health check path.
+I had to temporarily adjust the health check settings to be more lenient during initial deployment, then tighten them once the application was stable. **⚠️ Important note for anyone deploying this infrastructure**: ensure your application has a working health check endpoint before deployment, or modify the `health_check` variable in `variables.tf` to match your application's actual health check path.
 
 Another significant challenge I overcame was the "chicken and egg" problem with ECS services and ECR images. My ECS service needed an image to deploy, but the ECR repository was being created by the same Terraform code. I solved this with a two-phase approach:
 
@@ -109,7 +109,7 @@ Another significant challenge I overcame was the "chicken and egg" problem with 
 2. Immediately push an initial container image using GitHub Actions
 3. Second deployment: Complete ECS service creation with the available image
 
-Without an image in ECR, the ECS service deployment would fail with "Unable to find image" errors. **Critical step**: After creating the ECR repository, you must immediately run the GitHub Actions workflow to push an initial image before the ECS service can deploy successfully.
+Without an image in ECR, the ECS service deployment would fail with "Unable to find image" errors. **⚠️ Critical step**: After creating the ECR repository, you must immediately run the GitHub Actions workflow to push an initial image before the ECS service can deploy successfully.
 
 The EventBridge + Lambda automation for continuous deployment also required careful IAM permission configuration. My initial deployments failed because the Lambda function lacked permissions to update the ECS service. I enhanced the policy to include all necessary ECS and ECR permissions, creating a fully automated pipeline that triggers deployments whenever a new image is pushed.
 
@@ -121,11 +121,11 @@ A particularly elegant solution I implemented was the automated Lambda function 
 
 This automation means anyone deploying the infrastructure doesn't need to manually create or manage the Lambda deployment package - it's all handled by Terraform.
 
-### The Result
+### 🏆 The Result
 
 The result is a resilient, scalable, and fully automated serverless infrastructure that requires minimal maintenance. The system automatically scales up during high traffic and scales down during quiet periods, optimizing cost without sacrificing performance. I'm particularly proud of the CI/CD pipeline that ensures new code deployments are seamless and require no manual intervention.
 
-## Architecture Overview
+## 🏗️ Architecture Overview
 
 This infrastructure implements a modern, scalable, and highly available architecture with the following components:
 
@@ -141,11 +141,9 @@ This infrastructure implements a modern, scalable, and highly available architec
 
 ![Architecture Diagram](AWS-ECS-Fargates.png)
 
-## Infrastructure Components
+## 🚀 Deployment
 
-## Deployment
-
-### Prerequisites
+### 📋 Prerequisites
 
 - AWS CLI configured with appropriate permissions
 - Terraform 1.0.0+
@@ -153,7 +151,7 @@ This infrastructure implements a modern, scalable, and highly available architec
 - A registered domain in Route 53 with a hosted zone created
 - GitHub repository with GitHub Actions configured
 
-### Deployment Steps
+### 🔄 Deployment Steps
 
 1. Clone this repository
 2. Configure the following GitHub Actions secrets:
@@ -179,11 +177,11 @@ This infrastructure implements a modern, scalable, and highly available architec
 4. Update other configuration parameters in your terraform.tfvars as needed
 5. Push changes to the main branch to trigger the GitHub Actions workflow
 
-## Configuration Variables
+## ⚙️ Configuration Variables
 
 The infrastructure is highly customizable through variables defined in `variables.tf`. Here are the key variables grouped by category:
 
-### General Configuration
+### 🌐 General Configuration
 
 | Variable | Description | Default |
 |----------|-------------|---------|
@@ -193,7 +191,7 @@ The infrastructure is highly customizable through variables defined in `variable
 | `domain_name` | Primary domain name | `"artisantiling.co.nz"` |
 | `default_tags` | Default tags for resources | `{ Name = "DevOps-NZ", Environment = "production", ... }` |
 
-### Container and ECS Configuration
+### 🐳 Container and ECS Configuration
 
 | Variable | Description | Default |
 |----------|-------------|---------|
@@ -206,7 +204,7 @@ The infrastructure is highly customizable through variables defined in `variable
 | `min_capacity` | Minimum tasks for auto-scaling | `2` |
 | `image_tag` | Docker image tag to deploy | `"jellybean"` |
 
-### Database Configuration
+### 🗄️ Database Configuration
 
 | Variable | Description | Default |
 |----------|-------------|---------|
@@ -214,7 +212,7 @@ The infrastructure is highly customizable through variables defined in `variable
 | `db_username` | Database username | Required |
 | `db_password` | Database password (sensitive) | Required |
 
-### Auto-Scaling Configuration
+### 📈 Auto-Scaling Configuration
 
 | Variable | Description | Default |
 |----------|-------------|---------|
@@ -224,7 +222,7 @@ The infrastructure is highly customizable through variables defined in `variable
 | `scale_in_cooldown` | Scale in cooldown in seconds | `300` |
 | `scale_out_cooldown` | Scale out cooldown in seconds | `60` |
 
-### Health Check Configuration
+### 🩺 Health Check Configuration
 
 | Variable | Description | Default |
 |----------|-------------|---------|
@@ -232,7 +230,7 @@ The infrastructure is highly customizable through variables defined in `variable
 
 For the complete list of variables, refer to the `variables.tf` file.
 
-## Lambda Code Packaging
+## 🐍 Lambda Code Packaging
 
 One of the unique features of this infrastructure is the automatic Python Lambda code packaging during deployment:
 
@@ -295,9 +293,9 @@ This automation removes the need to manually create or maintain the Lambda funct
 3. Package it into a ZIP file
 4. Update the Lambda function with the fresh package during each `terraform apply`
 
-## Infrastructure Components
+## 🏗️ Infrastructure Components
 
-### Networking (vpc.tf)
+### 🌐 Networking (vpc.tf)
 
 - **VPC**: Large IP address space (10.0.0.0/16) with 65,536 available IP addresses
 - **Subnets**: 
@@ -309,7 +307,7 @@ This automation removes the need to manually create or maintain the Lambda funct
 
 Documentation: [AWS VPC](https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html)
 
-### Container Registry (ecr.tf)
+### 📦 Container Registry (ecr.tf)
 
 - Amazon ECR repository for storing container images
 - Image scanning on push for security vulnerability detection
@@ -317,7 +315,7 @@ Documentation: [AWS VPC](https://docs.aws.amazon.com/vpc/latest/userguide/what-i
 
 Documentation: [Amazon ECR](https://docs.aws.amazon.com/AmazonECR/latest/userguide/what-is-ecr.html)
 
-### Container Orchestration (cluster.tf, task-definition.tf, ecs-fargate-service.tf)
+### 🐳 Container Orchestration (cluster.tf, task-definition.tf, ecs-fargate-service.tf)
 
 - ECS cluster with FARGATE and FARGATE_SPOT capacity providers
 - Task definition with resource allocation (256 CPU units, 512MB memory)
@@ -331,7 +329,7 @@ Documentation:
 - [Amazon ECS](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/Welcome.html)
 - [AWS Fargate](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/AWS_Fargate.html)
 
-### Load Balancing (alb.tf)
+### ⚖️ Load Balancing (alb.tf)
 
 - Application Load Balancer for traffic distribution
 - Target group with health checks at `/api/health`
@@ -340,7 +338,7 @@ Documentation:
 
 Documentation: [Elastic Load Balancing](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html)
 
-### Database (aurora-mysql.tf)
+### 🗄️ Database (aurora-mysql.tf)
 
 - Aurora MySQL Serverless v2 cluster
 - Multi-AZ deployment with 2 instances
@@ -349,7 +347,7 @@ Documentation: [Elastic Load Balancing](https://docs.aws.amazon.com/elasticloadb
 
 Documentation: [Amazon Aurora](https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/CHAP_AuroraOverview.html)
 
-### Security (security-group.tf, iam.tf)
+### 🔒 Security (security-group.tf, iam.tf)
 
 - Security groups with least privilege access:
   - ALB: Accept HTTP/HTTPS from internet
@@ -364,7 +362,7 @@ Documentation:
 - [Security Groups](https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html)
 - [IAM](https://docs.aws.amazon.com/IAM/latest/UserGuide/introduction.html)
 
-### SSL/TLS and DNS (acm.tf, route53-dns-record.tf)
+### 🔐 SSL/TLS and DNS (acm.tf, route53-dns-record.tf)
 
 - ACM certificate for domain with DNS validation
 - Route 53 A record for `server.example.com` pointing to ALB
@@ -375,14 +373,14 @@ Documentation:
 - [AWS Certificate Manager](https://docs.aws.amazon.com/acm/latest/userguide/acm-overview.html)
 - [Amazon Route 53](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/Welcome.html)
 
-### Monitoring and Logging (cloudwatch.tf)
+### 📊 Monitoring and Logging (cloudwatch.tf)
 
 - CloudWatch Log Groups for ECS services with 30-day retention
 - Container Insights enabled for enhanced monitoring
 
 Documentation: [Amazon CloudWatch](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/WhatIsCloudWatch.html)
 
-### Continuous Deployment (ecs-update-service.tf)
+### 🔄 Continuous Deployment (ecs-update-service.tf)
 
 - EventBridge rule to monitor ECR image pushes with tag "jellybean"
 - Lambda function to trigger ECS service updates automatically
@@ -393,7 +391,7 @@ Documentation:
 - [Amazon EventBridge](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-what-is.html)
 - [AWS Lambda](https://docs.aws.amazon.com/lambda/latest/dg/welcome.html)
 
-### CI/CD Workflow
+### 🔄 CI/CD Workflow
 
 This project includes a GitHub Actions workflow for continuous integration and deployment. The workflow file (`.github/workflows/build-deploy.yml`) automatically:
 
@@ -459,7 +457,7 @@ jobs:
 
 After deployment, monitor the ECS service in the AWS Console.
 
-## Outputs
+## 📋 Outputs
 
 The following outputs are available after deployment:
 
@@ -474,7 +472,7 @@ The following outputs are available after deployment:
 - `rds_reader_endpoint`: Aurora database reader endpoint
 - `rds_port`: Aurora database port
 
-## Security Considerations
+## 🔒 Security Considerations
 
 - The `terraform.tfvars` file is included in `.gitignore` to prevent committing sensitive information
 - You must create your own `terraform.tfvars` file locally with database credentials
@@ -483,9 +481,9 @@ The following outputs are available after deployment:
 - Database has `skip_final_snapshot` set to true, which should be changed in production
 - For additional security, consider using AWS Secrets Manager for runtime credential access
 
-## Maintenance and Operations
+## 🔧 Maintenance and Operations
 
-### Scaling
+### 📈 Scaling
 
 The infrastructure automatically scales based on:
 - CPU utilization (target: 70%)
@@ -494,14 +492,14 @@ The infrastructure automatically scales based on:
 
 You can adjust these values in `variables.tf`.
 
-### Monitoring
+### 📊 Monitoring
 
 Monitor your application using:
 - CloudWatch Container Insights
 - CloudWatch Logs
 - ALB access logs
 
-### Updating the Application
+### 🔄 Updating the Application
 
 The application updates automatically through the CI/CD pipeline:
 
@@ -514,20 +512,20 @@ The application updates automatically through the CI/CD pipeline:
 
 You can also manually trigger the workflow using GitHub Actions' workflow_dispatch event.
 
-## Cost Optimization
+## 💰 Cost Optimization
 
 - Fargate Spot is configured for cost savings (75% of capacity)
 - Aurora Serverless v2 scales down to 0.5 ACUs when not in use
 - **S3 Gateway Endpoint** is implemented to avoid NAT Gateway data processing charges for S3 traffic
 - Consider scheduling scaling for predictable workloads
 
-## License
+## 📜 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 
-## Contributor
+## 👨‍💻 Contributor
 
 - Martin Lawrence M. Caringal
   - Email: lawrencecaringal5@gmail.com
-  - Phone: 0221248553
+  - Phone: 022 124 8553
