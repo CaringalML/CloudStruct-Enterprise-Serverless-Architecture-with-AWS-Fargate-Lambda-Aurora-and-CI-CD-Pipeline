@@ -59,7 +59,7 @@ Want to deploy this infrastructure quickly? Follow these steps:
 
 **Important Notes**:
 - Make sure your app has a health check endpoint at `/api/health`
-- To destroy the infrastructure: `terraform destroy`
+- To destroy the infrastructure, first delete the container images, then run `terraform destroy`
 - Container images use the tag "jellybean" by default
 - The infrastructure includes an S3 Gateway Endpoint which optimizes costs by routing S3 traffic directly through AWS's network instead of through NAT Gateways
 - **Before deployment**: You must register your domain in Route 53 and create a hosted zone for it, then update the `domain_name` variable in `variables.tf  "domain_name" block` to match your registered domain
