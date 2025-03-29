@@ -1,8 +1,8 @@
-# CloudStruct: Serverless Backend with AWS Fargate, Aurora and Event-Driven Lambda CI/CD Automation
+# CloudStruct: Serverless Backend with AWS Fargate, Aurora, WAF and Event-Driven Lambda CI/CD Automation
 
-![Architecture Diagram](AWS-ECS-Fargates.png)
+![Architecture Diagram](production-mvc.png)
 
-This repository contains Terraform Infrastructure as Code (IaC) for a production-grade serverless application platform deployed on AWS. The architecture leverages cutting-edge cloud services including ECS Fargate, Lambda functions, Aurora Serverless v2, and EventBridge to create a fully managed, auto-scaling infrastructure with zero server maintenance.
+This repository contains Terraform Infrastructure as Code (IaC) for a production-grade serverless application platform deployed on AWS. The architecture leverages cutting-edge cloud services including ECS Fargate, Lambda functions, Aurora Serverless v2, AWS WAF, and EventBridge to create a fully managed, auto-scaling infrastructure with zero server maintenance. This infrastructure is specifically designed for standalone web MVC frameworks such as ASP.NET Core MVC, Spring MVC, Laravel, Ruby on Rails, and Django.
 
 ## Demo
 
@@ -65,6 +65,19 @@ Want to deploy this infrastructure quickly? Follow these steps:
 - Container images use the tag "jellybean" by default
 - The infrastructure includes an S3 Gateway Endpoint which optimizes costs by routing S3 traffic directly through AWS's network instead of through NAT Gateways
 - **Before deployment**: You must register your domain in Route 53 and create a hosted zone for it, then update the `domain_name` variable in `variables.tf  "domain_name" block` to match your registered domain
+
+## MVC Framework Support
+
+This infrastructure is optimized for Model-View-Controller (MVC) web application frameworks. It provides:
+
+- Containerized runtime for any web framework (ASP.NET Core MVC, Spring MVC, Laravel, Django, Rails, etc.)
+- Database connectivity for model persistence via Aurora MySQL Serverless v2
+- Static asset serving and caching through CloudFront (optional)
+- Security headers and web application firewall for protection
+- Health monitoring and auto-scaling based on actual application load
+- Simple deployment pipeline that works with any MVC framework's container image
+
+The infrastructure is particularly well-suited for traditional monolithic MVC applications that need cloud-native capabilities without refactoring to microservices. Simply containerize your MVC application and deploy it to this infrastructure for immediate benefits of high availability, auto-scaling, and security.
 
 ## Why Containerized Deployment?
 
@@ -135,6 +148,7 @@ This infrastructure implements a modern, scalable, and highly available architec
 - ECS Fargate for container orchestration
 - Aurora MySQL Serverless v2 for database
 - Application Load Balancer for traffic distribution
+- AWS WAF for web application protection
 - ACM for SSL/TLS certificate management
 - Route 53 for DNS management
 - ECR for container image storage
@@ -180,6 +194,42 @@ This infrastructure implements a modern, scalable, and highly available architec
 4. Update other configuration parameters in your terraform.tfvars as needed
 5. Push changes to the main branch to trigger the GitHub Actions workflow
 
+## Preparing Your MVC Application for Deployment
+
+To deploy your MVC application on this infrastructure:
+
+1. **Create a Dockerfile** for your MVC application. Examples:
+
+   **ASP.NET Core MVC**:
+   ```dockerfile
+   FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
+   WORKDIR /app
+   COPY . .
+   RUN dotnet publish -c Release -o out
+
+   FROM mcr.microsoft.com/dotnet/aspnet:6.0
+   WORKDIR /app
+   COPY --from=build /app/out .
+   COPY appsettings.json .
+   ENTRYPOINT ["dotnet", "YourApp.dll"]
+   ```
+
+   **Spring MVC**:
+   ```dockerfile
+   FROM maven:3.8-openjdk-17 AS build
+   WORKDIR /app
+   COPY . .
+   RUN mvn clean package -DskipTests
+
+   FROM openjdk:17-jdk-slim
+   WORKDIR /app
+   COPY --from=build /app/target/*.jar app.jar
+   ENTRYPOINT ["java", "-jar", "app.jar"]
+   ```
+
+2. **Implement a health check endpoint** at `/api/health` that returns a 200 OK status
+3. **Configure database connectivity** using environment variables that will be injected via GitHub Actions
+
 ## Configuration Variables
 
 The infrastructure is highly customizable through variables defined in `variables.tf`. Here are the key variables grouped by category:
@@ -214,6 +264,14 @@ The infrastructure is highly customizable through variables defined in `variable
 | `db_name` | Database name | Required |
 | `db_username` | Database username | Required |
 | `db_password` | Database password (sensitive) | Required |
+
+### WAF Configuration
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `waf_enabled` | Enable WAF protection | `true` |
+| `waf_rate_limit` | Max requests per 5-min from an IP | `2000` |
+| `waf_block_countries` | Country codes to block (optional) | `[]` |
 
 ### Auto-Scaling Configuration
 
@@ -341,6 +399,19 @@ Documentation:
 
 Documentation: [Elastic Load Balancing](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html)
 
+### Web Application Firewall (waf.tf)
+
+- AWS WAF Web ACL protecting all application traffic
+- AWS managed rule sets:
+  - Core rule set (protection against common web exploits)
+  - Known bad inputs (blocks requests with malicious inputs)
+  - SQL injection protection (defends against SQL injection attacks)
+- Rate-based protection (limits requests to 2000 per IP address)
+- Optional geo-blocking capability (configurable by country code)
+- Comprehensive logging to CloudWatch
+
+Documentation: [AWS WAF](https://docs.aws.amazon.com/waf/latest/developerguide/what-is-aws-waf.html)
+
 ### Database (aurora-mysql.tf)
 
 - Aurora MySQL Serverless v2 cluster
@@ -379,7 +450,9 @@ Documentation:
 ### Monitoring and Logging (cloudwatch.tf)
 
 - CloudWatch Log Groups for ECS services with 30-day retention
+- WAF logs with comprehensive monitoring dashboard
 - Container Insights enabled for enhanced monitoring
+- Alarms for high rates of blocked WAF requests
 
 Documentation: [Amazon CloudWatch](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/WhatIsCloudWatch.html)
 
@@ -474,12 +547,16 @@ The following outputs are available after deployment:
 - `rds_endpoint`: Aurora database endpoint
 - `rds_reader_endpoint`: Aurora database reader endpoint
 - `rds_port`: Aurora database port
+- `web_acl_id`: WAF Web ACL ID
+- `web_acl_arn`: WAF Web ACL ARN
 
 ## Security Considerations
 
 - The `terraform.tfvars` file is included in `.gitignore` to prevent committing sensitive information
 - You must create your own `terraform.tfvars` file locally with database credentials
 - Database credentials are securely stored as GitHub Actions secrets and injected during deployment
+- AWS WAF protects against common web vulnerabilities and DDoS attacks
+- WAF logs can be analyzed to detect and respond to security incidents
 - Consider enabling deletion protection in production
 - Database has `skip_final_snapshot` set to true, which should be changed in production
 - For additional security, consider using AWS Secrets Manager for runtime credential access
@@ -495,12 +572,21 @@ The infrastructure automatically scales based on:
 
 You can adjust these values in `variables.tf`.
 
+### WAF Management
+
+To modify WAF protection:
+- Adjust rate limiting thresholds in `variables.tf`
+- Enable geo-blocking by uncommenting the geo-blocking rule in `waf.tf`
+- Add custom rules for specific protection requirements
+- Monitor WAF metrics in the CloudWatch dashboard
+
 ### Monitoring
 
 Monitor your application using:
 - CloudWatch Container Insights
 - CloudWatch Logs
 - ALB access logs
+- WAF monitoring dashboard and logs
 
 ### Updating the Application
 
