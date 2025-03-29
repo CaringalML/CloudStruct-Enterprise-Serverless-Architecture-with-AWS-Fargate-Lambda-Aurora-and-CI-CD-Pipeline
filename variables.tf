@@ -475,3 +475,30 @@ variable "cpu_architecture" {
   default     = "X86_64"
 }
 
+
+
+
+# WAF Configuration Variables
+variable "waf_enabled" {
+  description = "Enable WAF protection for the application"
+  type        = bool
+  default     = true
+}
+
+variable "waf_rate_limit" {
+  description = "Maximum requests per 5-minute period from a single IP"
+  type        = number
+  default     = 2000
+}
+
+variable "waf_block_countries" {
+  description = "List of country codes to block (optional)"
+  type        = list(string)
+  default     = []
+}
+
+variable "waf_additional_rules_enabled" {
+  description = "Enable additional custom WAF rules"
+  type        = bool
+  default     = false
+}
