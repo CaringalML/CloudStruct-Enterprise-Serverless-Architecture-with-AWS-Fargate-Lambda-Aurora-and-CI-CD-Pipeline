@@ -515,6 +515,325 @@ The application updates automatically through the CI/CD pipeline:
 
 You can also manually trigger the workflow using GitHub Actions' workflow_dispatch event.
 
+
+# AWS Infrastructure Cost Estimation
+
+This document provides cost estimates for the AWS infrastructure as defined in the Terraform configuration files. The estimates are based on the AWS pricing in the Sydney (ap-southeast-2) region as of March 2025.
+
+## Infrastructure Overview
+
+This infrastructure consists of:
+
+- **VPC** with public and private subnets across 2 availability zones
+- **ECS Fargate** for container orchestration
+- **Application Load Balancer** for distributing traffic
+- **Aurora MySQL Serverless v2** for database
+- **ECR** for container image storage
+- **ACM** for SSL certificate
+- **Route 53** for DNS management
+- **CloudWatch** for logging and monitoring
+- **Lambda** for automating ECS deployments
+- **IAM** roles and policies for security
+
+## Cost Breakdown
+
+### Compute Costs (ECS Fargate)
+
+- **Configuration**: 
+  - 2 tasks (min) to 20 tasks (max) 
+  - Each task: 256 CPU units (0.25 vCPU) and 512MB memory
+  - Mix of regular Fargate (40%) and Fargate Spot (60%)
+
+- **Fargate Regular Price**: $0.04993 per vCPU-hour and $0.00558 per GB-hour
+- **Fargate Spot Price**: Approximately 70% discount ($0.01498 per vCPU-hour and $0.00167 per GB-hour)
+
+| Time Period | Minimum Cost (2 tasks) | Average Cost (5 tasks) | Maximum Cost (20 tasks) |
+|-------------|------------------------|------------------------|-------------------------|
+| Hourly      | $0.37                  | $0.92                  | $3.70                   |
+| Daily       | $8.88                  | $22.08                 | $88.80                  |
+| Monthly     | $266.40                | $662.40                | $2,664.00               |
+| Yearly      | $3,196.80              | $7,948.80              | $31,968.00              |
+
+> Note: The actual cost will vary based on auto-scaling activity. The average cost assumes 5 tasks running on average.
+
+### Database Costs (Aurora MySQL Serverless v2)
+
+- **Configuration**: 
+  - 2 instances
+  - Min capacity: 0.5 ACU
+  - Max capacity: 4 ACU
+
+- **Price**: $0.12 per ACU-hour (Aurora Capacity Unit)
+
+| Time Period | Minimum Cost (0.5 ACU × 2) | Average Cost (1.5 ACU × 2) | Maximum Cost (4 ACU × 2) |
+|-------------|----------------------------|----------------------------|--------------------------|
+| Hourly      | $0.12                      | $0.36                      | $0.96                    |
+| Daily       | $2.88                      | $8.64                      | $23.04                   |
+| Monthly     | $86.40                     | $259.20                    | $691.20                  |
+| Yearly      | $1,036.80                  | $3,110.40                  | $8,294.40                |
+
+> Note: Serverless v2 scales based on workload. The average assumes 1.5 ACU per instance.
+
+### Networking Costs
+
+#### Application Load Balancer
+- **Price**: $0.0252 per hour + $0.008 per LCU-hour (Load Balancer Capacity Unit)
+
+| Time Period | Minimum Cost | Average Cost (with moderate traffic) |
+|-------------|--------------|--------------------------------------|
+| Hourly      | $0.0252      | $0.0652                              |
+| Daily       | $0.60        | $1.56                                |
+| Monthly     | $18.00       | $46.80                               |
+| Yearly      | $216.00      | $561.60                              |
+
+#### NAT Gateways (2)
+- **Price**: $0.059 per NAT Gateway-hour + data processing charges
+- **Data Processing**: $0.059 per GB
+
+| Time Period | Fixed Cost (2 Gateways) | Average Cost (with data processing) |
+|-------------|-------------------------|-------------------------------------|
+| Hourly      | $0.118                  | $0.177                              |
+| Daily       | $2.83                   | $4.25                               |
+| Monthly     | $84.90                  | $127.50                             |
+| Yearly      | $1,018.80               | $1,530.00                           |
+
+### Storage and Service Costs
+
+#### ECR (Elastic Container Registry)
+- **Storage**: $0.10 per GB-month
+- **Data Transfer**: $0.09 per GB (after first GB free)
+- **Estimated Monthly Cost**: $5-10
+
+#### CloudWatch Logs
+- **Ingestion**: $0.76 per GB
+- **Storage**: $0.03 per GB-month
+- **Estimated Monthly Cost**: $20-50 (depends on log volume)
+
+#### Route 53
+- **Hosted Zone**: $0.50 per month
+- **Queries**: $0.40 per million queries
+- **Estimated Monthly Cost**: $1-5
+
+#### ACM (Certificate Manager)
+- **Public Certificates**: Free
+- **Private Certificates**: Not used in this setup
+
+#### Lambda
+- **Invocations**: $0.20 per million requests
+- **Compute Time**: $0.0000166667 per GB-second
+- **Estimated Monthly Cost**: $1-3 (for ECR push event handling)
+
+## Real-World Cost Scenarios
+
+To provide a more practical understanding of costs, let's look at three realistic scenarios:
+
+### Scenario 1: Baseline Steady Workload (No Scaling)
+This represents a typical production environment with consistent traffic but no significant scaling events.
+
+| Component | Quantity/Configuration | Monthly Cost | Explanation |
+|-----------|------------------------|--------------|-------------|
+| ECS Fargate | 2 tasks, 0.25 vCPU, 0.5GB RAM each | $219.60 | Steady baseline with 60% Fargate Spot usage |
+| Aurora MySQL | 2 instances at 1.0 ACU average | $172.80 | Consistent database load |
+| Application Load Balancer | 1 ALB with moderate traffic | $32.40 | ~500 new connections/second |
+| NAT Gateways | 2 gateways with 100GB data transfer | $127.50 | Standard dual-AZ setup |
+| ECR Repository | 1 repo with 2GB storage, 10 pushes/month | $3.50 | Regular CI/CD updates |
+| CloudWatch Logs | 20GB log ingestion, 30-day retention | $18.20 | Standard logging pattern |
+| Route 53 | 1 hosted zone, 1M queries/month | $1.40 | Domain management |
+| Lambda Function | 100 invocations/month | $0.10 | Triggered on image pushes |
+| Other (S3 Endpoint, IAM, etc.) | N/A | $0.00 | No direct costs |
+| **TOTAL BASELINE COST** | | **$575.50** | **$6,906.00 annually** |
+
+### Scenario 2: Moderate Scaling Events
+This builds on the baseline with periodic scaling to handle traffic spikes.
+
+| Component | Change from Baseline | Monthly Cost | Explanation |
+|-----------|----------------------|--------------|-------------|
+| ECS Fargate | Avg 3.5 tasks (peaks to 8) | $384.30 | Daily scaling for peak hours |
+| Aurora MySQL | Avg 1.5 ACU per instance | $259.20 | Increased database activity |
+| All other components | Same as baseline | $183.60 | Minimal impact from scaling |
+| **TOTAL WITH MODERATE SCALING** | | **$827.10** | **$9,925.20 annually** |
+
+### Scenario 3: Heavy Scaling with Optimizations
+This scenario includes both heavy scaling and the cost optimizations recommended earlier.
+
+| Component | Configuration | Monthly Cost | Explanation |
+|-----------|---------------|--------------|-------------|
+| ECS Fargate | Avg 5 tasks, 90% Spot usage | $422.60 | Heavy but optimized scaling |
+| Aurora MySQL | 1 instance at 2 ACU + 1 at 1 ACU | $216.00 | Reader/writer optimization |
+| NAT Gateways | Reduced to 1 gateway | $63.75 | Optimized but with less redundancy |
+| Other optimizations | Reduced log retention, etc. | $135.70 | Multiple optimizations applied |
+| **TOTAL OPTIMIZED** | | **$538.05** | **$6,456.60 annually** |
+
+### Comparison of Real-World Scenarios
+
+| Scenario | Monthly Cost | Annual Cost | Key Characteristics |
+|----------|--------------|-------------|---------------------|
+| Baseline Steady Workload | $575.50 | $6,906.00 | Consistent traffic, no scaling |
+| Moderate Scaling Events | $827.10 | $9,925.20 | Daily scaling, traffic spikes |
+| Heavy Scaling with Optimizations | $538.05 | $6,456.60 | Higher traffic but with cost optimizations |
+
+The baseline steady workload represents the minimum viable production deployment without any scaling, which is approximately $575.50 per month. This is the "steady state" cost you can expect for a production environment with consistent but not heavy traffic.
+
+## Cost Optimization Recommendations
+
+The following optimization strategies could significantly reduce your infrastructure costs:
+
+### Immediate Cost-Saving Opportunities
+
+1. **NAT Gateway Consolidation** (-$42/month)
+   - Replace the two NAT Gateways with a single NAT Gateway in one availability zone
+   - Savings: ~50% of NAT Gateway costs ($42-60/month)
+   - Trade-off: Reduced high availability for private subnet internet access
+
+2. **Fargate Spot Optimization** (-$130/month)
+   - Modify capacity provider strategy:
+     ```hcl
+     capacity_provider_strategy {
+       capacity_provider = "FARGATE"
+       base              = 1     # Reduced from 2
+       weight            = 1
+     }
+     capacity_provider_strategy {
+       capacity_provider = "FARGATE_SPOT"
+       base              = 0
+       weight            = 9     # Increased from 3
+     }
+     ```
+   - Increase Fargate Spot usage from 60% to 90%
+   - Estimated savings: 20-25% of Fargate costs ($130-165/month at average load)
+   - Trade-off: Slight increase in potential workload interruptions
+
+3. **Aurora Serverless Minimum Capacity** (-$25/month)
+   - Reduce minimum capacity from 0.5 ACU to 0.1 ACU (minimum allowed)
+   - Update `serverlessv2_scaling_configuration` block:
+     ```hcl
+     serverlessv2_scaling_configuration {
+       min_capacity = 0.1
+       max_capacity = 4
+     }
+     ```
+   - Savings: ~$25/month during low usage periods
+   - Trade-off: Slightly longer cold start times
+
+4. **CloudWatch Log Optimization** (-$15/month)
+   - Reduce log retention from 30 days to 7 days:
+     ```hcl
+     variable "log_retention_days" {
+       default = 7  # Changed from 30
+     }
+     ```
+   - Implement log filtering in task definition to reduce volume:
+     ```hcl
+     logConfiguration = {
+       logDriver = "awslogs"
+       options = {
+         # Existing options...
+         "awslogs-attributes" = "logFilters=[{name=exclude,pattern=\"DEBUG\"}]"
+       }
+     }
+     ```
+   - Estimated savings: $15-30/month
+
+### Medium-Term Optimizations
+
+5. **Right-Size Container Resources** (-$90/month)
+   - After 2-3 weeks of monitoring, adjust container CPU/memory based on actual usage
+   - If containers show <50% CPU utilization consistently, reduce from 256 to 128 CPU units
+   - Potential savings: ~15% of Fargate costs ($90/month at average load)
+
+6. **Load Balancer Optimization** (-$10/month)
+   - Review if HTTP-to-HTTPS redirect rule is necessary
+   - Consider using a Network Load Balancer instead of Application Load Balancer for simple use cases
+   - Potential savings: $10-15/month
+
+7. **Auto-Scaling Tuning** (-$30/month)
+   - Review and adjust your scaling thresholds:
+     ```hcl
+     target_tracking_scaling_policy_configuration {
+       # Current configuration:
+       # cpu_target_value = 70
+       # memory_target_value = 80
+       # request_count_target = 1000
+       
+       # More aggressive scaling:
+       cpu_target_value = 80
+       memory_target_value = 85
+       request_count_target = 1200
+     }
+     ```
+   - Increase `scale_in_cooldown` to prevent thrashing
+   - Estimated savings: 5-10% of Fargate costs ($30-66/month at average load)
+
+### Long-Term Strategic Optimizations
+
+8. **Reserved Compute Pricing** (-$200/month)
+   - For long-term workloads, consider Compute Savings Plans for a 1-year commitment
+   - Apply to baseline Fargate capacity (not Spot instances)
+   - Potential savings: Up to 30% on committed compute usage ($200/month)
+
+9. **Container Image Optimization** (-$40/month)
+   - Minimize container image size with multi-stage builds
+   - Implement application-level caching to reduce compute needs
+   - Potential resource reduction: 5-10% of compute costs ($40-65/month)
+
+10. **Aurora Read Replicas Optimization** (-$45/month)
+    - Consider using a single instance during development/staging
+    - For production, use second replica only for critical periods
+    - When using two instances, leverage reader endpoint for appropriate queries
+    - Potential savings: ~$45/month if one instance is scaled down during low traffic
+
+### Simple Cost Savings Summary
+
+Here's a straightforward breakdown of potential monthly savings from each optimization:
+
+**Quick Wins (Implement in 1-2 days)**
+- **Use one NAT Gateway instead of two**: Save $42/month
+- **Increase Fargate Spot usage to 90%**: Save $130/month
+- **Reduce Aurora minimum capacity**: Save $25/month
+- **Set CloudWatch log retention to 7 days**: Save $15/month
+- **Quick Wins Total**: Save $212/month
+
+**Medium Effort (Implement in 1-2 weeks)**
+- **Right-size container CPU and memory**: Save $90/month
+- **Optimize Load Balancer settings**: Save $10/month
+- **Tune auto-scaling thresholds**: Save $30/month
+- **Medium Effort Total**: Save $130/month
+
+**Strategic Changes (Implement in 1-2 months)**
+- **Purchase Compute Savings Plans**: Save $200/month
+- **Optimize container images**: Save $40/month
+- **Optimize Aurora read replicas**: Save $45/month
+- **Strategic Changes Total**: Save $285/month
+
+**GRAND TOTAL SAVINGS: $627/month ($7,524/year)**
+
+This represents a 54% reduction from the average monthly cost of $1,164.
+
+
+**Bottom Line**: Your optimized infrastructure could cost as little as $537/month while maintaining the same capabilities.
+
+## Assumptions and Notes
+
+- All prices are based on AWS Sydney (ap-southeast-2) region pricing as of March 2025.
+- The actual costs will vary based on usage patterns, data transfer, and scaling activities.
+- This estimate does not include potential AWS Free Tier benefits.
+- Data transfer costs between services within the same region are minimal and not fully itemized.
+- Costs for AWS support plans are not included.
+
+## Monitoring Actual Costs
+
+To monitor and manage your actual AWS costs:
+
+1. Set up AWS Budgets and Cost Anomaly Detection
+2. Review the AWS Cost Explorer regularly
+3. Tag resources appropriately for cost allocation
+4. Consider using AWS Cost and Usage Reports for detailed analysis
+
+---
+
+*This cost estimation is provided as guidance only. Actual costs may vary based on usage patterns and AWS pricing changes.*
+
+
 ## Cost Optimization
 
 - Fargate Spot is configured for cost savings (75% of capacity)
