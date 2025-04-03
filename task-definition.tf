@@ -26,6 +26,8 @@ resource "aws_ecs_task_definition" "main" {
           protocol      = "tcp"
         }
       ]
+
+
       
       logConfiguration = {
         logDriver = "awslogs"

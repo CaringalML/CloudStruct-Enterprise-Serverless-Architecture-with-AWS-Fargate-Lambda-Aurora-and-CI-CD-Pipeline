@@ -2,7 +2,7 @@ resource "aws_ecs_service" "main" {
   name                   = "${var.project_name}-${var.environment}-${var.service_name}"
   cluster                = aws_ecs_cluster.main.id
   task_definition        = aws_ecs_task_definition.main.arn
-  desired_count          = var.desired_count
+  desired_count          = 1  # Only 1 task in dev environment
   platform_version       = var.platform_version
   force_new_deployment   = var.force_new_deployment
   
@@ -12,9 +12,9 @@ resource "aws_ecs_service" "main" {
   ]
 
   network_configuration {
-    subnets          = [aws_subnet.private_1.id, aws_subnet.private_2.id]
+    subnets          = [aws_subnet.public_1.id]  # Using public subnet in dev since we don't have NAT gateways
     security_groups  = [aws_security_group.fargate.id]
-    assign_public_ip = false
+    assign_public_ip = true  # Assign public IP in dev for internet access
   }
 
   load_balancer {
@@ -35,14 +35,8 @@ resource "aws_ecs_service" "main" {
   # Capacity provider strategy for higher scale
   capacity_provider_strategy {
     capacity_provider = "FARGATE"
-    base              = var.fargate_base
-    weight            = var.fargate_weight
-  }
-
-  capacity_provider_strategy {
-    capacity_provider = "FARGATE_SPOT"
-    base              = var.fargate_spot_base
-    weight            = var.fargate_spot_weight
+    base              = 1
+    weight            = 1
   }
 
   lifecycle {
@@ -54,8 +48,8 @@ resource "aws_ecs_service" "main" {
 
 # CloudWatch Auto Scaling Target
 resource "aws_appautoscaling_target" "ecs_target" {
-  max_capacity       = var.max_capacity
-  min_capacity       = var.min_capacity
+  max_capacity       = 2  # Reduced max capacity for dev
+  min_capacity       = 1  # Only 1 task in dev environment
   resource_id        = "service/${aws_ecs_cluster.main.name}/${aws_ecs_service.main.name}"
   scalable_dimension = "ecs:service:DesiredCount"
   service_namespace  = "ecs"

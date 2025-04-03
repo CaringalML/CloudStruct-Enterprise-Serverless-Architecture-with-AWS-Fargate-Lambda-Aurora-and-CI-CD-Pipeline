@@ -5,7 +5,7 @@ resource "aws_vpc" "main" {
   enable_dns_support   = true
 
   tags = {
-    Name = "main-vpc"
+    Name = "main-vpc-dev"
   }
 }
 
@@ -14,7 +14,7 @@ resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
 
   tags = {
-    Name = "main-igw"
+    Name = "main-igw-dev"
   }
 }
 
@@ -26,7 +26,7 @@ resource "aws_subnet" "public_1" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "public-subnet-1"
+    Name = "public-subnet-1-dev"
   }
 }
 
@@ -37,7 +37,7 @@ resource "aws_subnet" "public_2" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "public-subnet-2"
+    Name = "public-subnet-2-dev"
   }
 }
 
@@ -48,7 +48,7 @@ resource "aws_subnet" "private_1" {
   availability_zone = "ap-southeast-2a"
 
   tags = {
-    Name = "private-subnet-1"
+    Name = "private-subnet-1-dev"
   }
 }
 
@@ -58,43 +58,7 @@ resource "aws_subnet" "private_2" {
   availability_zone = "ap-southeast-2b"
 
   tags = {
-    Name = "private-subnet-2"
-  }
-}
-
-# EIPs for NAT Gateways
-resource "aws_eip" "nat_1" {
-  domain = "vpc"
-  
-  tags = {
-    Name = "nat-eip-1"
-  }
-}
-
-resource "aws_eip" "nat_2" {
-  domain = "vpc"
-  
-  tags = {
-    Name = "nat-eip-2"
-  }
-}
-
-# NAT Gateways - One per public subnet
-resource "aws_nat_gateway" "nat_1" {
-  allocation_id = aws_eip.nat_1.id
-  subnet_id     = aws_subnet.public_1.id
-
-  tags = {
-    Name = "nat-gateway-1"
-  }
-}
-
-resource "aws_nat_gateway" "nat_2" {
-  allocation_id = aws_eip.nat_2.id
-  subnet_id     = aws_subnet.public_2.id
-
-  tags = {
-    Name = "nat-gateway-2"
+    Name = "private-subnet-2-dev"
   }
 }
 
@@ -108,34 +72,25 @@ resource "aws_route_table" "public" {
   }
 
   tags = {
-    Name = "public-rt"
+    Name = "public-rt-dev"
   }
 }
 
 # Private Route Tables - One per AZ/private subnet
+# Note: For dev, we're not using NAT gateways, so these don't have routes to the internet
 resource "aws_route_table" "private_1" {
   vpc_id = aws_vpc.main.id
 
-  route {
-    cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.nat_1.id
-  }
-
   tags = {
-    Name = "private-rt-1"
+    Name = "private-rt-1-dev"
   }
 }
 
 resource "aws_route_table" "private_2" {
   vpc_id = aws_vpc.main.id
 
-  route {
-    cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.nat_2.id
-  }
-
   tags = {
-    Name = "private-rt-2"
+    Name = "private-rt-2-dev"
   }
 }
 
@@ -167,7 +122,7 @@ resource "aws_vpc_endpoint" "s3" {
   vpc_endpoint_type = "Gateway"  # Specify it as a Gateway Endpoint
   
   tags = {
-    Name = "s3-gateway-endpoint"
+    Name = "s3-gateway-endpoint-dev"
   }
 }
 

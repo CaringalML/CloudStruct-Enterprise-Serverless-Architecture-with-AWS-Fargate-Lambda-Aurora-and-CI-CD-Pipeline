@@ -5,7 +5,7 @@ resource "aws_lb" "main" {
   security_groups    = [aws_security_group.alb.id]
   subnets            = [aws_subnet.public_1.id, aws_subnet.public_2.id]
   
-  enable_deletion_protection = var.enable_deletion_protection
+  enable_deletion_protection = false  # Disable deletion protection in dev
   enable_http2               = var.enable_http2
   
   tags = merge(
@@ -69,32 +69,6 @@ resource "aws_lb_listener" "http" {
   lifecycle {
     ignore_changes = [default_action]
   }
-
-  tags = var.default_tags
-}
-
-# Create a separate HTTPS redirect rule that depends on ECS service
-resource "aws_lb_listener_rule" "http_to_https_redirect" {
-  listener_arn = aws_lb_listener.http.arn
-  priority     = 1
-
-  condition {
-    path_pattern {
-      values = ["/*"]
-    }
-  }
-
-  action {
-    type = "redirect"
-    redirect {
-      port        = var.https_port
-      protocol    = "HTTPS"
-      status_code = "HTTP_301"
-    }
-  }
-
-  # This makes the redirect rule wait for ECS service to be ready
-  depends_on = [aws_ecs_service.main]
 
   tags = var.default_tags
 }

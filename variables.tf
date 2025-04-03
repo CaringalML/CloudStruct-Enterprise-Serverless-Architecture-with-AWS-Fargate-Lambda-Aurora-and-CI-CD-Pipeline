@@ -40,7 +40,7 @@ variable "max_image_count" {
 variable "environment" {
   description = "Environment (e.g., production, staging, development)"
   type        = string
-  default     = "production"
+  default     = "development"
 }
 
 variable "project_name" {
@@ -271,7 +271,7 @@ variable "service_name" {
 variable "desired_count" {
   description = "Desired number of tasks for the service"
   type        = number
-  default     = 2
+  default     = 1
 }
 
 variable "platform_version" {
