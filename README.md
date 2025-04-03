@@ -266,8 +266,8 @@ The following optimization strategies could significantly reduce your infrastruc
 ### Development Environment Optimizations
 
 1. **NAT Gateway Elimination** (-$127.50/month)
-   - The development environment completely removes NAT Gateways
-   - Tasks run in public subnets with public IPs for internet access
+   - The development environment completely removes 2 NAT Gateways
+   - 1 Tasks run in public subnets with public IPs for internet access
    - Savings: 100% of NAT Gateway costs ($127.50/month)
    - Trade-off: Slightly different network architecture than production
 
